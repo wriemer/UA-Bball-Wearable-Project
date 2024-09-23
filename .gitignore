@@ -5,7 +5,26 @@ __pycache__/
 
 # Virtual environments
 venv/
+.venv/
 env/
+.env/
 ENV/
 env.bak/
 venv.bak/
+
+# don't need to store training images, simply run the command from bball_model_training_yolov8.ipynb to download them
+/CV/training/Player_detect-1/
+/CV/training/Player_detect-1/**
+/CV/training/Player_detect-1/Player_detect-1/**
+/CV/training/Player_detect-1/Player_detect-1/test/**
+/CV/training/Player_detect-1/Player_detect-1/train/**
+/CV/training/Player_detect-1/Player_detect-1/valid/**
+/CV/training/Player_detect-1/Player_detect-1/test/images/**
+/CV/training/Player_detect-1/Player_detect-1/train/images/**
+/CV/training/Player_detect-1/Player_detect-1/valid/images/**
+/CV/training/Player_detect-1/Player_detect-1/test/labels/**
+/CV/training/Player_detect-1/Player_detect-1/train/labels/**
+/CV/training/Player_detect-1/Player_detect-1/valid/labels/**
+
+# predicted videos are too large for GitHub, need to exclude them
+/CV/runs/detect/predict/
