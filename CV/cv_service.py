@@ -1,17 +1,20 @@
 # This file will contain main logic for cv operations
 
-from ultralytics import YOLO
+from utils import read_video, save_video
+from trackers import Tracker
 
 def main():
-    model = YOLO('models/best.pt')
+    #Read in video
+    video_frames = read_video('input_videos/film_aau.mp4')
 
-    results = model.predict('input_videos/bball_2.mp4', save=True)
+    #Initialize Tracker, takes in trained model
+    tracker = Tracker('models/best.pt')
 
-    print(results[0])
-    print('==========================')
-    for box in results[0].boxes:
-        print(box)
+    tracks = tracker.get_object_tracks(video_frames)
 
+    #Save video
+    save_video(video_frames, 'output_videos/output.avi')
+    
 
 if __name__ == '__main__':
     main()
