@@ -27,6 +27,6 @@ venv.bak/
 /CV/training/Player_detect-1/Player_detect-1/valid/labels/**
 
 # predicted videos are too large for GitHub, need to exclude them
-/CV/runs/detect/predict/
-
+/CV/runs/detect/
 /Data/data/*
+/CV/output_videos/
