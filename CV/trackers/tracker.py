@@ -146,6 +146,7 @@ class Tracker:
         return frame
 
     def draw_traingle(self,frame,bbox,color):
+        print('Drawing triangle for ball')
         y= int(bbox[1])
         x,_ = get_center_of_bbox(bbox)
 
@@ -178,12 +179,14 @@ class Tracker:
             team_1 = 0
             team_2 = 0
 
-        cv2.putText(frame, f"Team 1 Ball Control: {team_1*100:.2f}%",(1400,900), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 3)
-        cv2.putText(frame, f"Team 2 Ball Control: {team_2*100:.2f}%",(1400,950), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 3)
+        #cv2.putText(frame, f"Team 1 Ball Control: {team_1*100:.2f}%",(1400,900), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 3)
+        #cv2.putText(frame, f"Team 2 Ball Control: {team_2*100:.2f}%",(1400,950), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 3)
+
+        cv2.putText(frame, f"Ball Control: {team_ball_control[frame_num]}",(1400,900), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 3)
 
         return frame
 
-    def draw_annotations(self,video_frames, tracks,team_ball_control):
+    def draw_annotations(self, video_frames, tracks, team_ball_control):
         output_video_frames= []
         for frame_num, frame in enumerate(video_frames):
             frame = frame.copy()
