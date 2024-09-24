@@ -28,3 +28,5 @@ venv.bak/
 
 # predicted videos are too large for GitHub, need to exclude them
 /CV/runs/detect/predict/
+
+/Data/data/*
