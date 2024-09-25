@@ -22,10 +22,12 @@ def initialize_db():
         TeamID INTEGER NOT NULL,
         Name TEXT NOT NULL,
         Position TEXT,
-        JerseyNumber INTEGER,
-        FOREIGN KEY (TeamID) REFERENCES Team(TeamID) ON DELETE CASCADE
+        JerseyNumber INTEGER NOT NULL,
+        FOREIGN KEY (TeamID) REFERENCES Team(TeamID) ON DELETE CASCADE,
+        UNIQUE(TeamID, JerseyNumber)
     );
     ''')
+
 
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS OffensiveStats (
@@ -105,7 +107,7 @@ def populate_table(folder_path, type):
 
             try:
                 df = pd.read_csv(file_path, skiprows=1, sep=',')
-                print(f"Processing {filename}, Columns: {df.columns.tolist()}")
+                print(f"Processing {filename}")
 
                 required_columns = ["Player","GP","Poss","%Time","Pts",
                                     "PPP","FG Att","FG Made","FG Miss",
@@ -128,11 +130,19 @@ def populate_table(folder_path, type):
                 for index, row in df.iterrows():
                     row = row.fillna(value={'Player': None, 'Position': None, 'Jersey #': None})
                     cursor.execute('''
-                    INSERT INTO Player (TeamID, Name, Position, JerseyNumber)
-                    VALUES (?, ?, ?, ?)
-                    ''', (team_id, row['Player'], None, row['Jersey #'])) 
+                    SELECT PlayerID FROM Player WHERE TeamID = ? AND JerseyNumber = ?
+                    ''', (team_id, row['Jersey #']))
+                    result = cursor.fetchone()
+                    
+                    if result:
+                        player_id = result[0]
+                    else:
+                        cursor.execute('''
+                        INSERT INTO Player (TeamID, Name, Position, JerseyNumber)
+                        VALUES (?, ?, ?, ?)
+                        ''', (team_id, row['Player'], None, row['Jersey #']))
+                        player_id = cursor.lastrowid
 
-                    player_id = cursor.lastrowid
                     stats_data.append((
                         player_id,
                         row['GP'],
