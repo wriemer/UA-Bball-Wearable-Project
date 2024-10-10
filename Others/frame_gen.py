@@ -2,8 +2,8 @@ import cv2
 import random
 import os
 
-VIDEO_TITLE = "Carolina_Basketball" # Set this to .mp4 name
-FRAME_COUNT = 25 # Set to dsired amount of frames
+VIDEO_TITLE = "duke_basketball" # Set this to .mp4 name (Without .mp4)
+FRAME_COUNT = 50 # Set to desired amount of frames
 
 def extract_random_frames(video_path, num_frames=FRAME_COUNT):
     # Open the video file
