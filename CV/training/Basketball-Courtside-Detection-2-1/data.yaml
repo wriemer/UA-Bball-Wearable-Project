@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 4
+names: ['Ball', 'Coach', 'Player', 'Referee']
+
+roboflow:
+  workspace: workspace-mvcuz
+  project: basketball-courtside-detection-2
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/workspace-mvcuz/basketball-courtside-detection-2/dataset/1
