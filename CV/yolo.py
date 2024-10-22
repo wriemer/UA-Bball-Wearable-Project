@@ -1,9 +1,9 @@
 from ultralytics import YOLO
 
 def main():
-    model = YOLO('models/best.pt')
+    model = YOLO('models/models-new/best.pt')
 
-    results = model.predict('input_videos/film_aau.mp4', save=True)
+    results = list(model.predict('input_videos/bball_4.mp4', save=True, stream=True))
 
     print(results[0])
     print('==========================')
