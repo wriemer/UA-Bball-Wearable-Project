@@ -38,3 +38,6 @@ trace.txt
 
 /Others/videos
 /Others/frame_dump
+
+# Don't want to store api credentials in public github
+/Data/api/config.json
