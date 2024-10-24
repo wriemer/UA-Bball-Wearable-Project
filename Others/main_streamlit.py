@@ -63,10 +63,6 @@ elif upload_type == "Video":
         tfile = tempfile.NamedTemporaryFile(delete=False)
         tfile.write(uploaded_video.read())
 
-        video_cap = cv2.VideoCapture(tfile.name)
-        if video_cap.isOpened():
-            st.video(tfile.name)
-        else:
-            st.warning("Could not play the video. Try uploading a different file.")
+        st.video(tfile.name)
 
 
