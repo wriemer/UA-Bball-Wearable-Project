@@ -16,10 +16,10 @@ def main():
     video_frames, fps = read_video('input_videos/bball_4.mp4')
 
     # Initialize Tracker
-    tracker = Tracker('models/best.pt')
+    tracker = Tracker('models/models-new/best.pt')
 
     tracks = tracker.get_object_tracks(video_frames,
-                                       read_from_stub=True,
+                                       read_from_stub=False,
                                        stub_path='stubs/track_stubs.pkl')
     # Get object positions 
     tracker.add_position_to_tracks(tracks)
@@ -79,11 +79,11 @@ def main():
     print('================= _ball_tracks ============')
     print(tracks['ball'])
 
-    print('============ _team_ball_control ============')
-    print(f'type: {type(team_ball_control)}')
-    print(f'shape: {team_ball_control.shape}')
-    for i, team in enumerate(team_ball_control):
-        print(f'frame {i}: {team_ball_control[i]}')
+   # print('============ _team_ball_control ============')
+   # print(f'type: {type(team_ball_control)}')
+   # print(f'shape: {team_ball_control.shape}')
+   # for i, team in enumerate(team_ball_control):
+   #     print(f'frame {i}: {team_ball_control[i]}')
 
     ## Draw Camera movement
     #output_video_frames = camera_movement_estimator.draw_camera_movement(output_video_frames,camera_movement_per_frame)

@@ -30,9 +30,11 @@ venv.bak/
 /CV/runs/detect/
 /Data/data/*
 /CV/output_videos/
+/CV/input_videos/
 
 /CV/input_videos/bball_3.mp4
 trace.txt
+/CV/stubs/
 
 /Others/videos
 /Others/frame_dump

@@ -82,14 +82,14 @@ class Tracker:
                 cls_id = frame_detection[3]
                 track_id = frame_detection[4]
 
-                if cls_id == cls_names_inv['person']:
+                if cls_id == cls_names_inv['Player']:
                     tracks["players"][frame_num][track_id] = {"bbox":bbox}
             
             for frame_detection in detection_supervision:
                 bbox = frame_detection[0].tolist()
                 cls_id = frame_detection[3]
 
-                if cls_id == cls_names_inv['ball']:
+                if cls_id == cls_names_inv['Ball']:
                     tracks["ball"][frame_num][1] = {"bbox":bbox}
 
         if stub_path is not None:
