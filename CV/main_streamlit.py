@@ -5,6 +5,9 @@ import numpy as np
 import cv2
 import tempfile
 import random
+import os
+from cv_service import main
+
 
 """
 Requirements:
@@ -63,6 +66,16 @@ elif upload_type == "Video":
         tfile = tempfile.NamedTemporaryFile(delete=False)
         tfile.write(uploaded_video.read())
 
+        # Display the original video
         st.video(tfile.name)
+        
+        # Annotate video
+        if st.sidebar.button("Annotate Video"):
+            main(uploaded_video.name)
+
+            output_path = 'output_videos/' + uploaded_video.name
+            
+            # Display
+            st.video(output_path)
 
 

@@ -11,9 +11,9 @@ from player_ball_assigner import PlayerBallAssigner
 #from view_transformer import ViewTransformer
 #from speed_and_distance_estimator import SpeedAndDistance_Estimator
     
-def main():
+def main(input_video_path):
      # Read Video
-    video_frames, fps = read_video('input_videos/bball_4.mp4')
+    video_frames, fps = read_video('input_videos/' + input_video_path)
 
     # Initialize Tracker
     tracker = Tracker('models/models-new/best.pt')
@@ -92,7 +92,7 @@ def main():
     #speed_and_distance_estimator.draw_speed_and_distance(output_video_frames,tracks)
 
     # Save video
-    save_video(output_video_frames, 'output_videos/bball_4_output2.avi', fps)
+    save_video(output_video_frames, 'output_videos/' + input_video_path, fps)
 
 if __name__ == '__main__':
-    main()
+    main('input_videos/3Seconds.mp4')
