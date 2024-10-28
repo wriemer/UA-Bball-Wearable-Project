@@ -1,12 +1,11 @@
 # This file will contain main logic for cv operations
 
-from ultralytics import YOLO
 from utils import read_video, save_video
 from trackers import Tracker
-import cv2
 import numpy as np
 from team_assigner import TeamAssigner
 from player_ball_assigner import PlayerBallAssigner
+import os
 #from camera_movement_estimator import CameraMovementEstimator
 #from view_transformer import ViewTransformer
 #from speed_and_distance_estimator import SpeedAndDistance_Estimator
@@ -91,8 +90,19 @@ def main(input_video_path):
     ## Draw Speed and Distance
     #speed_and_distance_estimator.draw_speed_and_distance(output_video_frames,tracks)
 
+    base_name, ext = os.path.splitext(input_video_path)
+    output_dir = 'output_videos'
+    output_path = os.path.join(output_dir, f"{base_name}{ext}")
+
+    # If the output path exists, save the file with a slightly different name
+    count = 1
+    while os.path.exists(output_path):
+        output_path = os.path.join('output_videos', f"{base_name}_{count}{ext}")
+        count += 1
+
     # Save video
-    save_video(output_video_frames, 'output_videos/' + input_video_path, fps)
+    save_video(output_video_frames, output_path, fps)
+    return output_path
 
 if __name__ == '__main__':
-    main('input_videos/3Seconds.mp4')
+    main('input_videos/short.mp4')
