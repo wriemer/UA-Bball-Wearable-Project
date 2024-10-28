@@ -47,7 +47,7 @@ def save_video(output_video_frames, output_video_path, fps):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     
-    fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+    fourcc = cv2.VideoWriter_fourcc(*'H264')
     frame_height, frame_width = output_video_frames[0].shape[:2]
     out = cv2.VideoWriter(output_video_path, fourcc, fps, (frame_width, frame_height))
 
