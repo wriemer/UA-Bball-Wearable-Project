@@ -9,25 +9,26 @@ import os
 from cv_service import main
 
 
-"""
-Requirements:
-    - streamlit==0.87.0
-    - streamlit-drawable-canvas==0.12.0
-    - Pillow==8.3.1
-    - tempfile==1.0.1
-"""
+#"""
+#Requirements:
+#    - streamlit==0.87.0
+#    - streamlit-drawable-canvas==0.12.0
+#    - Pillow==8.3.1
+#    - tempfile==1.0.1
+#"""
 
 # Load a pretrained YOLO Model
-"""
-cascade_path = "haarcascade_fullbody.xml"
-human_cascade = cv2.CascadeClassifier(cascade_path)
-"""
+#"""
+#cascade_path = "haarcascade_fullbody.xml"
+#human_cascade = cv2.CascadeClassifier(cascade_path)
+#"""
 
 # Title
-st.title("Auto-Label or Annotate Uploaded Image or Video")
+st.title("Annotate Uploaded Video")
 
 # Image or Video
-upload_type = st.sidebar.selectbox("Select Upload Type", ("Image", "Video"))
+#upload_type = st.sidebar.selectbox("Select Upload Type", ("Image", "Video"))
+upload_type = "Video"
 
 def add_random_boxes(image, n=3):
     image_np = np.array(image.convert("RGB"))
@@ -70,10 +71,10 @@ elif upload_type == "Video":
         st.video(tfile.name)
         
         # Annotate video
-        if st.sidebar.button("Annotate Video"):
-            main(uploaded_video.name)
-
-            output_path = 'output_videos/' + uploaded_video.name
+        if st.button("Annotate Video"):
+            with st.spinner("Annotating video..."):
+                main(uploaded_video.name)
+                output_path = 'output_videos/' + uploaded_video.name
             
             # Display
             st.video(output_path)
