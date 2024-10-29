@@ -15,7 +15,7 @@ def main(input_video_path):
     video_frames, fps = read_video('input_videos/' + input_video_path)
 
     # Initialize Tracker
-    tracker = Tracker('models/models-new/best.pt')
+    tracker = Tracker('models/models-med/best.pt')
 
     tracks = tracker.get_object_tracks(video_frames,
                                        read_from_stub=False,
@@ -78,18 +78,6 @@ def main(input_video_path):
     print('================= _ball_tracks ============')
     print(tracks['ball'])
 
-   # print('============ _team_ball_control ============')
-   # print(f'type: {type(team_ball_control)}')
-   # print(f'shape: {team_ball_control.shape}')
-   # for i, team in enumerate(team_ball_control):
-   #     print(f'frame {i}: {team_ball_control[i]}')
-
-    ## Draw Camera movement
-    #output_video_frames = camera_movement_estimator.draw_camera_movement(output_video_frames,camera_movement_per_frame)
-
-    ## Draw Speed and Distance
-    #speed_and_distance_estimator.draw_speed_and_distance(output_video_frames,tracks)
-
     base_name, ext = os.path.splitext(input_video_path)
     output_dir = 'output_videos'
     output_path = os.path.join(output_dir, f"{base_name}{ext}")
@@ -105,4 +93,4 @@ def main(input_video_path):
     return output_path
 
 if __name__ == '__main__':
-    main('input_videos/short.mp4')
+    main('duke_short.mp4')

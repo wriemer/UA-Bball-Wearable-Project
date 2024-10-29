@@ -1,7 +1,7 @@
 from ultralytics import YOLO
 
 def main():
-    model = YOLO('models/models-new/best.pt')
+    model = YOLO('models/models-med/best.pt')
 
     results = list(model.predict('input_videos/bball_4.mp4', save=True, stream=True))
 

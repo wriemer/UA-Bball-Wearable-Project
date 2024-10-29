@@ -147,6 +147,7 @@ class Tracker:
 
     def draw_traingle(self,frame,bbox,color):
         print('Drawing triangle for ball')
+        print('___BBOX___', bbox)
         y= int(bbox[1])
         x,_ = get_center_of_bbox(bbox)
 
@@ -159,6 +160,19 @@ class Tracker:
         cv2.drawContours(frame, [triangle_points],0,(0,0,0), 2)
 
         return frame
+    
+    def draw_ball_box(self, frame, bbox, color, thickness):
+        print('Drawing ball\'s bounding box')
+        x1 = int(bbox[0])
+        y1 = int(bbox[1])
+        x2 = int(bbox[2])
+        y2 = int(bbox[3])
+        print(f'x1: {x1}, y1: {y1}')
+
+        frame = cv2.rectangle(frame, (x1, y1), (x2, y2), color, thickness)
+
+        return frame
+        
 
     def draw_team_ball_control(self,frame,frame_num,team_ball_control):
         # Draw a semi-transparent rectaggle 
@@ -203,10 +217,13 @@ class Tracker:
 
                     if player.get('has_ball',False):
                         frame = self.draw_traingle(frame, player["bbox"],(0,0,255))
+                        # PROBLEM w/ box being drawna round correct player
+                        #frame = self.draw_ball_box(frame, player["bbox"], (0,255,0), 2)
                 
                 # Draw ball 
                 for track_id, ball in ball_dict.items():
-                    frame = self.draw_traingle(frame, ball["bbox"],(0,255,0))
+                    #frame = self.draw_traingle(frame, ball["bbox"],(0,255,0))
+                    frame = self.draw_ball_box(frame, ball["bbox"], (0,255,0), 2)
 
 
                 # Draw Team Ball Control
