@@ -2,6 +2,8 @@
 layout: default
 ---
 
+Let's experiement with this format for hosting our site
+
 Text can be **bold**, _italic_, or ~~strikethrough~~.
 
 [Link to another page](./another-page.html).
