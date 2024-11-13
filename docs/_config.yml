@@ -1,11 +1,10 @@
 title: UA Bball Wearable Project
 logo: /images/bball.png
-description: Minimal is a theme for GitHub Pages.
+description: CS495 Capstone Project
 show_downloads: true
 google_analytics:
 theme: jekyll-theme-minimal
 
-collections:  
-  docs:
-    output: true
-    permalink: /:collection/:path/
+
+layout: page
+permalink: /sprint.md

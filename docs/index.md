@@ -2,11 +2,13 @@
 layout: default
 ---
 
+[Sprint Log](/sprint)
+
+[Other](/other)
+
 Let's experiement with this format for hosting our site
 
 Text can be **bold**, _italic_, or ~~strikethrough~~.
-
-- [Sprint Log](/docs/sprint)
 
 
 There should be whitespace between paragraphs.
