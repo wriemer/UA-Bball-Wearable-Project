@@ -2,9 +2,9 @@
 layout: default
 ---
 
-[Sprint Log](/sprint)
+[Sprint Log](/UA-Bball-Wearable-Project/sprint)
 
-[Other](/other)
+[Other](/UA-Bball-Wearable-Project/other)
 
 Let's experiement with this format for hosting our site
 
