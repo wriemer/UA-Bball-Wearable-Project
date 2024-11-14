@@ -14,15 +14,18 @@ class SynergySportsAPI:
 
         self.ncaa_id = None
         self.alabama_id = None
+        self.auburn_id = None
         
-
+        self._load_config()
+        
 
     def _load_config(self):
         # Load secrets
         with open(self.config_path) as config_file:
             config = json.load(config_file)
-            self.ncaa_id = config['other']['ncaa_id']
+            self.ncaa_id = config['other']['ncaa_mens_id']
             self.alabama_id = config['other']['alabama_id']
+            self.auburn_id = config['other']['ncaa_men_team_ids']['auburn']
         return config['client_id'], config['client_secret']
 
     def _get_access_token(self):
@@ -61,31 +64,20 @@ class SynergySportsAPI:
         response = requests.get(url, headers=self._get_headers())
         response.raise_for_status()
         
-        return response.json()
-    
-    def get_team(self, league_id=None, team_id=None):
-        league_id = league_id or self.ncaa_id
-        team_id = team_id or self.alabama_id
-
-        url = f"{self.base_url}/teams/{team_id}/players"
-        response = requests.get(url, headers=self._get_headers())
-        response.raise_for_status()
-        return response.json()
+        return response.json()['data']
     
     def get_team_roster(self, team_id=None):
         team_id = team_id or self.alabama_id
+        
+        print("Team ID: ", team_id)
 
         url = f"{self.base_url}/teams/{team_id}/players"
         response = requests.get(url, headers=self._get_headers())
         response.raise_for_status()
-        return response.json()
-
-
-    def get_game_boxscore(self, game_id):
-        url = f"{self.base_url}/games/{game_id}/boxscores"
-        response = requests.get(url, headers=self._get_headers())
-        response.raise_for_status()
-        return response.json()
+        
+        res = response.json()
+        
+        return res
     
     def search_games(self, league_id=None, team_id=None, season_id=None, status=None, min_date=None, max_date=None):
         """
@@ -121,26 +113,27 @@ class SynergySportsAPI:
 # Example usage
 if __name__ == '__main__':
     api = SynergySportsAPI()
+    
+    leagues = api.get_leagues()
+    
+    api.format_print(leagues['data'][0])
 
+    
     teams = api.get_teams()
     
-    print(type(teams))  # Debug print to check the type of the response
-    api.format_print(teams)  # Debug print to check the response data
-    for team in teams:
-        print(team)
-        print(type(team))
-        if team["data"]["name"] == "Alabama":
-            alabama_id = team['id']
-            print("Alabama ID: ", alabama_id)
-            break
+    print(type(teams))
+    api.format_print(teams[0])
     
-    a = api.get_team()
-    print(a)
+
+    auburn_roster = api.get_team_roster(api.auburn_id)
     
-    ncaa_mens = api.get_teams()
+    api.format_print(auburn_roster)
+
+
+    # rand_game = api.auburn_game
     
-    for team in ncaa_mens:
-        print(team)
-        if team["data"]["name"] == "Alabama":
-            alabama_id = team['id']
-            break
+    # game = api.get_game(rand_game)
+    
+    # print(game)
+    
+    
