@@ -2,6 +2,10 @@ import requests
 import json
 import os
 
+"""
+https://basketball.synergysportstech.com/external/api-docs/index.html
+"""
+
 class SynergySportsAPI:
     """
     Init and config methods
@@ -15,6 +19,10 @@ class SynergySportsAPI:
         self.ncaa_id = None
         self.alabama_id = None
         self.auburn_id = None
+        self.georgia_id = None
+        self.xavier_id = None
+        
+        self.game_id_1 = None
         
         self._load_config()
         
@@ -26,6 +34,9 @@ class SynergySportsAPI:
             self.ncaa_id = config['other']['ncaa_mens_id']
             self.alabama_id = config['other']['alabama_id']
             self.auburn_id = config['other']['ncaa_men_team_ids']['auburn']
+            self.georgia_id = config['other']['ncaa_men_team_ids']['georgia']
+            self.xavier_id = config['other']['ncaa_men_team_ids']['xavier']
+            self.game_id_1 = config['other']['game_id_1']
         return config['client_id'], config['client_secret']
 
     def _get_access_token(self):
@@ -46,6 +57,13 @@ class SynergySportsAPI:
         return {
             'Authorization': f'Bearer {self.access_token}'
         }
+        
+    def refresh_access_token(self):
+        self.access_token = self._get_access_token()
+
+
+    def format_print(self, response):
+        print(json.dumps(response, indent=4))
 
     """
     Custom functions
@@ -80,9 +98,6 @@ class SynergySportsAPI:
         return res
     
     def search_games(self, league_id=None, team_id=None, season_id=None, status=None, min_date=None, max_date=None):
-        """
-        Search for games with optional filters for league, team, season, status, and date range.
-        """
         url = f"{self.base_url}/games"
         params = {
             "leagueId": league_id,
@@ -91,7 +106,7 @@ class SynergySportsAPI:
             "status": status,
             "minDate": min_date,
             "maxDate": max_date,
-            "take": 10  # Limit to 10 games for example purposes, adjust as needed
+            "take": 10
         }
         
         # Filter out None values from params
@@ -100,40 +115,71 @@ class SynergySportsAPI:
         response = requests.get(url, headers=self._get_headers(), params=params)
         response.raise_for_status()
         return response.json()
+    
+    def get_game_events(self, game_id):
+        url = f"{self.base_url}/games/{game_id}/events"
+        response = requests.get(url, headers=self._get_headers())
+        response.raise_for_status()
+        return response.json()
 
-
-    def refresh_access_token(self):
-        # Refresh the access token manually if needed
-        self.access_token = self._get_access_token()
-
-
-    def format_print(self, response):
-        print(json.dumps(response, indent=4))
+    def get_player_boxscores(self, season_id):
+        url = f"{self.base_url}/seasons/{season_id}/players/boxscore"
+        response = requests.get(url, headers=self._get_headers())
+        response.raise_for_status()
+        return response.json()
+    
+    def get_team_boxscores(self, team_id, season_id):
+        url = f"{self.base_url}/seasons/{season_id}/teams/{team_id}/boxscore"
+        response = requests.get(url, headers=self._get_headers())
+        response.raise_for_status()
+        return response.json()
 
 # Example usage
 if __name__ == '__main__':
+    # this is where I experiment with the API, to see what data I can get
+    # See the SynergySportsAPITest.py file for a more structured example
     api = SynergySportsAPI()
     
     leagues = api.get_leagues()
     
-    api.format_print(leagues['data'][0])
+    # api.format_print(leagues['data'][0])
 
     
     teams = api.get_teams()
     
-    print(type(teams))
-    api.format_print(teams[0])
+    # print(type(teams))
+    # api.format_print(teams[0])
     
 
     auburn_roster = api.get_team_roster(api.auburn_id)
     
-    api.format_print(auburn_roster)
+    # api.format_print(auburn_roster)
+    
+    georgia_roster = api.get_team_roster(api.georgia_id)
+    
+    # api.format_print(georgia_roster)
 
 
-    # rand_game = api.auburn_game
+    game = api.search_games(team_id=api.auburn_id)
+
     
-    # game = api.get_game(rand_game)
+    first_game = game['data'][-1]
     
-    # print(game)
+        
     
+    api.format_print(first_game)
+    
+    game_id = first_game['data']['id']
+    # 544582db300969b132ff61a3
+    
+    for g in game['data']:
+        if g['data']['playerBoxscoresCount'] > 0:
+            print(g['data']['id'])
+            print("HIII")
+        else: 
+            print("No boxscores")
+    
+    boxscores = api.get_game_events(game_id)
+    
+    api.format_print(boxscores['data'][0])
     
