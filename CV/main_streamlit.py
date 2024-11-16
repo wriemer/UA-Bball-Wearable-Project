@@ -8,6 +8,7 @@ import random
 import os
 from cv_service import main
 from Data.api.SynergySportsAPI import SynergySportsAPI
+import shutil
 
 
 #"""
@@ -51,7 +52,6 @@ selected_league_name = st.sidebar.selectbox(
 # Find the league_id corresponding to the selected league name
 selected_league_id = next(league[1] for league in league_info if league[0] == selected_league_name)
 
-# Display the selected league ID (for debugging or verification)
 #st.write(f"Selected League: {selected_league_name} (ID: {selected_league_id})")
 
 if selected_league_name:
@@ -125,13 +125,19 @@ if upload_type == "Image":
 
 elif upload_type == "Video":
     uploaded_video = st.file_uploader("Upload a Video", type=["mp4", "mov", "avi"])
+    input_video_dir = './input_videos'
 
     if uploaded_video is not None:
-        tfile = tempfile.NamedTemporaryFile(delete=False)
-        tfile.write(uploaded_video.read())
+        video_path = os.path.join(input_video_dir, uploaded_video.name)
+        if not os.path.exists(video_path):
+            with open(video_path, "wb") as f:
+                shutil.copyfileobj(uploaded_video, f)
+
+        #tfile = tempfile.NamedTemporaryFile(delete=False)
+        #tfile.write(uploaded_video.read())
 
         # Display the original video
-        st.video(tfile.name)
+        st.video(video_path)
         
         # Annotate video
         if st.button("Annotate Video"):
