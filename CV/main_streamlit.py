@@ -7,6 +7,7 @@ import tempfile
 import random
 import os
 from cv_service import main
+from Data.api.SynergySportsAPI import SynergySportsAPI
 
 
 #"""
@@ -23,11 +24,73 @@ from cv_service import main
 #human_cascade = cv2.CascadeClassifier(cascade_path)
 #"""
 
+print("Current Working Directory:", os.getcwd())
+
 # Title
 st.title("Annotate Uploaded Video")
 
+api = SynergySportsAPI(config_path='../Data/api/config.json')
+
+# Team Selection and Color Assignment
+st.sidebar.header("Team Setup")
+
+
+leagues_data = api.get_leagues()
+leagues = leagues_data['data']
+
+# Extract league names from the nested structure
+league_info = [(league['data']['name'], league['data']['id']) for league in leagues]
+league_names = [league[0] for league in league_info]  # List of league names
+        
+selected_league_name = st.sidebar.selectbox(
+    "Select a League",
+    options=league_names,  # Pass the league names directly here
+    format_func=lambda name: name if name else "Select a League"  # This is optional; league names are already strings
+)
+
+# Find the league_id corresponding to the selected league name
+selected_league_id = next(league[1] for league in league_info if league[0] == selected_league_name)
+
+# Display the selected league ID (for debugging or verification)
+#st.write(f"Selected League: {selected_league_name} (ID: {selected_league_id})")
+
+if selected_league_name:
+    teams = api.get_teams(league_id=selected_league_id)  # Use the league_id to fetch teams
+    
+    # Extract team names for the dropdown
+    team_names = [team['data']['name'] for team in teams]
+
+    if team_names:
+        # Dropdown to select Team 1
+        selected_team_1 = st.sidebar.selectbox(
+            "Select Team 1",
+            options=team_names,
+            format_func=lambda name: name if name else "Select a Team",
+        )
+        
+        # Color picker for Team 1
+        team_1_color = st.sidebar.color_picker("Pick a Color for Team 1")
+        
+        # Dropdown to select Team 2
+        selected_team_2 = st.sidebar.selectbox(
+            "Select Team 2",
+            options=team_names,
+            format_func=lambda name: name if name else "Select a Team",
+        )
+        
+        # Color picker for Team 2
+        team_2_color = st.sidebar.color_picker("Pick a Color for Team 2")
+        
+        # Display selected teams and their colors
+        #st.write(f"Selected Teams and Colors:")
+        #st.write(f"Team 1: {selected_team_1} - Color: {team_1_color}")
+        #st.write(f"Team 2: {selected_team_2} - Color: {team_2_color}")
+    else:
+        st.sidebar.write("No teams available for this league.")
+else:
+    st.sidebar.write("Please select a league.")
+
 # Image or Video
-#upload_type = st.sidebar.selectbox("Select Upload Type", ("Image", "Video"))
 upload_type = "Video"
 
 def add_random_boxes(image, n=3):
