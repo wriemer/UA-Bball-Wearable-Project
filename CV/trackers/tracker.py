@@ -29,11 +29,46 @@ class Tracker:
         ball_positions = [x.get(1,{}).get('bbox',[]) for x in ball_positions]
         df_ball_positions = pd.DataFrame(ball_positions,columns=['x1','y1','x2','y2'])
 
-        # Interpolate missing values
-        df_ball_positions = df_ball_positions.interpolate()
-        df_ball_positions = df_ball_positions.bfill()
+        # Remove Outliers
+        avg_movement = df_ball_positions.diff().abs().mean()
 
-        ball_positions = [{1: {"bbox":x}} for x in df_ball_positions.to_numpy().tolist()]
+        last_valid_frame = None
+        consecutive_nans = 0
+        for i in range(len(df_ball_positions)):
+            if df_ball_positions.iloc[i].isna().all():  # If the current frame is NaN
+                consecutive_nans += 1
+            else:  # If the current frame is not NaN
+                if last_valid_frame is not None and consecutive_nans > 0:
+                    movement = np.abs(np.array(df_ball_positions.iloc[i].values) - np.array(last_valid_frame))
+
+                    # Scale the movement by the number of NaN frames in between
+                    scaled_movement = movement / (consecutive_nans * 0.25)
+
+                    # If the scaled movement is larger than the allowed threshold, set the frame to NaN
+                    for j in range(len(movement)):
+                        if scaled_movement[j] > (avg_movement[j] * 1.0):
+                            df_ball_positions.iloc[i] = np.nan 
+                            print(f"OUTLIER FOUND       {j}     {scaled_movement[j]}     {(avg_movement[j])}")
+
+                else : # Reset the NaN counter and update the last valid frame
+                    last_valid_frame = df_ball_positions.iloc[i].values
+                    consecutive_nans = 0
+
+        # Process frames in batches
+        batch_size = 10
+        for i in range(0, len(df_ball_positions), batch_size):
+            batch = df_ball_positions.iloc[i:i + batch_size]
+            
+            if batch.isna().all().all():
+                continue
+
+            df_ball_positions.iloc[i:i + batch_size] = batch.interpolate()
+            df_ball_positions.iloc[i:i + batch_size] = batch.bfill()
+
+        ball_positions = [
+            {1: {"bbox": x}} if not pd.isna(x).all() else {}
+            for x in df_ball_positions.to_numpy().tolist()
+        ]
 
         return ball_positions
 
@@ -146,8 +181,8 @@ class Tracker:
         return frame
 
     def draw_traingle(self,frame,bbox,color):
-        print('Drawing triangle for ball')
-        print('___BBOX___', bbox)
+        #print('Drawing triangle for ball')
+        #print('___BBOX___', bbox)
         y= int(bbox[1])
         x,_ = get_center_of_bbox(bbox)
 
@@ -162,12 +197,12 @@ class Tracker:
         return frame
     
     def draw_ball_box(self, frame, bbox, color, thickness):
-        print('Drawing ball\'s bounding box')
+        #print('Drawing ball\'s bounding box')
         x1 = int(bbox[0])
         y1 = int(bbox[1])
         x2 = int(bbox[2])
         y2 = int(bbox[3])
-        print(f'x1: {x1}, y1: {y1}')
+        #print(f'x1: {x1}, y1: {y1}')
 
         frame = cv2.rectangle(frame, (x1, y1), (x2, y2), color, thickness)
 
@@ -218,7 +253,7 @@ class Tracker:
                     if player.get('has_ball',False):
                         frame = self.draw_traingle(frame, player["bbox"],(0,0,255))
                         # PROBLEM w/ box being drawna round correct player
-                        #frame = self.draw_ball_box(frame, player["bbox"], (0,255,0), 2)
+                        frame = self.draw_ball_box(frame, player["bbox"], (0,255,0), 2)
                 
                 # Draw ball 
                 for track_id, ball in ball_dict.items():

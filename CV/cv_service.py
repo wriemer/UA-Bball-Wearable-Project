@@ -18,10 +18,13 @@ def main(input_video_path):
     tracker = Tracker('models/models-med/best.pt')
 
     tracks = tracker.get_object_tracks(video_frames,
-                                       read_from_stub=False,
+                                       read_from_stub=True,
                                        stub_path='stubs/track_stubs.pkl')
     # Get object positions 
     tracker.add_position_to_tracks(tracks)
+
+    # Interpolate missing ball positions
+    tracks["ball"] = tracker.interpolate_ball_positions(tracks["ball"])
 
     # Assign Player Teams
     team_assigner = TeamAssigner()
@@ -29,12 +32,12 @@ def main(input_video_path):
                                     tracks['players'][0])
     
     for frame_num, player_track in enumerate(tracks['players']):
-        print(f'TEAMS for frame {frame_num}')
+        #print(f'TEAMS for frame {frame_num}')
         for player_id, track in player_track.items():
             team = team_assigner.get_player_team(video_frames[frame_num],   
                                                  track['bbox'],
                                                  player_id)
-            print(f'Player ID: {player_id} \t Team: {team}')
+            #print(f'Player ID: {player_id} \t Team: {team}')
             tracks['players'][frame_num][player_id]['team'] = team 
             tracks['players'][frame_num][player_id]['team_color'] = team_assigner.team_colors[team]
 
@@ -42,12 +45,11 @@ def main(input_video_path):
     # Assign Ball Acquisition
     player_assigner = PlayerBallAssigner()
     team_ball_control= []
-    print(tracks)
     for frame_num, player_track in enumerate(tracks['players']):
-        print('a')
+        print('\nframe_num: ', frame_num)
         try:
             ball_bbox = tracks['ball'][frame_num][1]['bbox']
-            print(frame_num)
+
             assigned_player = player_assigner.assign_ball_to_player(player_track, ball_bbox)
 
             if assigned_player != -1:
@@ -72,11 +74,11 @@ def main(input_video_path):
     ## Draw object Tracks
     output_video_frames = tracker.draw_annotations(video_frames, tracks, team_ball_control)
 
-    print('============ __tracks =============')
-    print(tracks)
+    #print('============ __tracks =============')
+    #print(tracks)
 
-    print('================= _ball_tracks ============')
-    print(tracks['ball'])
+    #print('================= _ball_tracks ============')
+    #print(tracks['ball'])
 
     base_name, ext = os.path.splitext(input_video_path)
     output_dir = 'output_videos'
@@ -93,4 +95,4 @@ def main(input_video_path):
     return output_path
 
 if __name__ == '__main__':
-    main('duke_short.mp4')
+    main('duke.mp4')
