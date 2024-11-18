@@ -50,16 +50,25 @@ def main(input_video_path, team_1_name, team_1_color, team_2_name, team_2_color)
     
     # Assign Ball Acquisition
     player_assigner = PlayerBallAssigner()
-    team_ball_control= []
+    possession_tracker = []
     for frame_num, player_track in enumerate(tracks['players']):
         try:
             ball_bbox = tracks['ball'][frame_num][1]['bbox']
 
-            assigned_player = player_assigner.assign_ball_to_player(player_track, ball_bbox)
+            possession_tracker.append(player_assigner.assign_ball_to_player(player_track, ball_bbox))
+        except: 
+            possession_tracker.append(-1)
+    
 
-            if assigned_player != -1:
-                tracks['players'][frame_num][assigned_player]['has_ball'] = True
-                team_ball_control.append(tracks['players'][frame_num][assigned_player]['team'])
+    possession_tracker = player_assigner.correct_possession_history(possession_tracker, 3)
+
+
+    team_ball_control= []
+    for frame_num, player_track in enumerate(tracks['players']):
+        try:
+            if possession_tracker[frame_num] != -1:
+                tracks['players'][frame_num][possession_tracker[frame_num]]['has_ball'] = True
+                team_ball_control.append(tracks['players'][frame_num][possession_tracker[frame_num]]['team'])
             else:
                 if len(team_ball_control) < 1:
                     team_ball_control.append(3)
@@ -104,4 +113,4 @@ def main(input_video_path, team_1_name, team_1_color, team_2_name, team_2_color)
     return output_path
 
 if __name__ == '__main__':
-    main('bball_4.mp4', 'Breakaway', '#DFE2DC', 'TNBA', '#000000')
+    main('duke.mp4', 'Breakaway', '#DFE2DC', 'TNBA', '#000000')

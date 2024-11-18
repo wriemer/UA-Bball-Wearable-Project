@@ -39,3 +39,35 @@ class PlayerBallAssigner():
 
         self.previous_possessor = assigned_player
         return assigned_player
+    
+    def correct_possession_history(self, possession_history, tolerance=3):
+        corrected = []
+        current = possession_history[0]
+        new = -1
+        new_score = 0
+        
+        for player in possession_history:
+            if player == current:
+                while new_score > 0:
+                    corrected.append(current)
+                    new_score -= 1
+                corrected.append(player)
+            elif player == new:
+                new_score += 1
+                if new_score > tolerance:
+                    current = new
+                    while new_score > 0:
+                        corrected.append(current)
+                        new_score -= 1
+            else:
+                while new_score > 0:
+                    corrected.append(current)
+                    new_score -= 1
+                new = player
+                new_score = 1
+
+        while new_score > 0:
+            corrected.append(current)
+            new_score -= 1
+        
+        return corrected

@@ -175,7 +175,7 @@ class Tracker:
                 (int(x1_text),int(y1_rect+15)),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.6,
-                (0,0,0),
+                (128,128,128),
                 2
             )
 
