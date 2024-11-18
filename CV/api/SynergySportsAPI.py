@@ -10,7 +10,7 @@ class SynergySportsAPI:
     """
     Init and config methods
     """
-    def __init__(self, config_path='./Data/api/config.json'):
+    def __init__(self, config_path='./api/config.json'):
         self.auth_url = "https://auth.synergysportstech.com/connect/token"
         self.base_url = "https://basketball.synergysportstech.com/external/api"
         self.config_path = config_path
@@ -153,7 +153,7 @@ if __name__ == '__main__':
 
     auburn_roster = api.get_team_roster(api.auburn_id)
     
-    # api.format_print(auburn_roster)
+    api.format_print(auburn_roster)
     
     georgia_roster = api.get_team_roster(api.georgia_id)
     
@@ -182,4 +182,8 @@ if __name__ == '__main__':
     boxscores = api.get_game_events(game_id)
     
     api.format_print(boxscores['data'][0])
+
+    with open('auburn_roster.txt', 'w') as file:
+        file.write(api.format_print(auburn_roster))
+
     

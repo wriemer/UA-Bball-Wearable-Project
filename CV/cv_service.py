@@ -1,16 +1,20 @@
-# This file will contain main logic for cv operations
+# This file contains main logic for cv operations
 
 from utils import read_video, save_video
 from trackers import Tracker
 import numpy as np
 from team_assigner import TeamAssigner
 from player_ball_assigner import PlayerBallAssigner
+from api import SynergySportsAPI
 import os
-#from camera_movement_estimator import CameraMovementEstimator
-#from view_transformer import ViewTransformer
-#from speed_and_distance_estimator import SpeedAndDistance_Estimator
+import collections
     
-def main(input_video_path):
+def main(input_video_path, team_1_name, team_1_color, team_2_name, team_2_color):
+    print(team_1_name)
+    print(team_1_color)
+    print(team_2_name)
+    print(team_2_color)
+
      # Read Video
     video_frames, fps = read_video('input_videos/' + input_video_path)
 
@@ -18,65 +22,93 @@ def main(input_video_path):
     tracker = Tracker('models/models-med/best.pt')
 
     tracks = tracker.get_object_tracks(video_frames,
-                                       read_from_stub=False,
+                                       read_from_stub=True,
                                        stub_path='stubs/track_stubs.pkl')
     # Get object positions 
     tracker.add_position_to_tracks(tracks)
 
+    # Interpolate missing ball positions
+    tracks["ball"] = tracker.interpolate_ball_positions(tracks["ball"])
+    tracks["team_1_name"] = team_1_name
+    tracks["team_2_name"] = team_2_name
+
     # Assign Player Teams
     team_assigner = TeamAssigner()
-    team_assigner.assign_team_color(video_frames[0], 
-                                    tracks['players'][0])
+    #team_assigner.assign_team_color(video_frames[0], tracks['players'][0])
+    team_assigner.assign_team_colors(team_1_color, team_2_color)
     
     for frame_num, player_track in enumerate(tracks['players']):
-        print(f'TEAMS for frame {frame_num}')
         for player_id, track in player_track.items():
-            team = team_assigner.get_player_team(video_frames[frame_num],   
-                                                 track['bbox'],
-                                                 player_id)
-            print(f'Player ID: {player_id} \t Team: {team}')
-            tracks['players'][frame_num][player_id]['team'] = team 
-            tracks['players'][frame_num][player_id]['team_color'] = team_assigner.team_colors[team]
+            try:
+                team = team_assigner.get_player_team(video_frames[frame_num],   
+                                                    track['bbox'],
+                                                    player_id)
+                tracks['players'][frame_num][player_id]['team'] = team 
+                tracks['players'][frame_num][player_id]['team_color'] = team_assigner.team_colors[team]
+            except:
+                print('ERROR: ', frame_num)
 
     
     # Assign Ball Acquisition
     player_assigner = PlayerBallAssigner()
     team_ball_control= []
-    print(tracks)
+
+    #Rolling history of team assignment for the last 10 frames
+    rolling_history = collections.deque(maxlen=10)
+
+    possession_tracker= []
     for frame_num, player_track in enumerate(tracks['players']):
-        print('a')
         try:
             ball_bbox = tracks['ball'][frame_num][1]['bbox']
-            print(frame_num)
-            assigned_player = player_assigner.assign_ball_to_player(player_track, ball_bbox)
 
-            if assigned_player != -1:
-                print('Successfully assigned ball to player + team...')
-                print(tracks['players'][frame_num][assigned_player]['team'])
-                tracks['players'][frame_num][assigned_player]['has_ball'] = True
-                team_ball_control.append(tracks['players'][frame_num][assigned_player]['team'])
+            possession_tracker.append(player_assigner.assign_ball_to_player(player_track, ball_bbox))
+        except: 
+            possession_tracker.append(-1)
+
+    possession_tracker = player_assigner.correct_possession_history(possession_tracker, 3)
+
+    team_ball_control= []
+    for frame_num, player_track in enumerate(tracks['players']):
+        try:
+            if possession_tracker[frame_num] != -1:
+                current_team = tracks['players'][frame_num][possession_tracker[frame_num]]['team']
+                tracks['players'][frame_num][possession_tracker[frame_num]]['has_ball'] = True
+                team_ball_control.append(tracks['players'][frame_num][possession_tracker[frame_num]]['team'])
             else:
-                if len(team_ball_control) < 1:
-                    team_ball_control.append(3)
-                else:
-                    team_ball_control.append(team_ball_control[-1])
-                #team_ball_control.append(team_ball_control[-1])
+                current_team = team_ball_control[-1] if team_ball_control else 3
+
+            #Update rolling history with current frame's assignment
+            rolling_history.append(current_team)
+
+            #Find mode team assignment from last 10 frames
+            mode_team = collections.Counter(rolling_history).most_common(1)[0][0]
+            team_ball_control.append(mode_team)
+
         except: 
             print('Excepted...')
+            rolling_history.append(1)
             team_ball_control.append(1)
             continue
     team_ball_control = np.array(team_ball_control)
 
 
+    # Query Information
+    api_team_1_name = 'Georgia'
+    api_team_2_name = 'Auburn'
+    API = SynergySportsAPI.SynergySportsAPI()
+    
+    ncaa_teams = API.get_teams(API.ncaa_id)
+    for team in ncaa_teams:
+        if team['data']['name'] == api_team_1_name:
+            api_team_1 = team
+            api_team_1['data']['roster'] = API.get_team_roster(api_team_1["data"]["id"])
+        elif team['data']['name'] == api_team_2_name:
+            api_team_2 = team
+            api_team_2['data']['roster'] = API.get_team_roster(api_team_2["data"]["id"])
+
+
     # Draw output 
-    ## Draw object Tracks
-    output_video_frames = tracker.draw_annotations(video_frames, tracks, team_ball_control)
-
-    print('============ __tracks =============')
-    print(tracks)
-
-    print('================= _ball_tracks ============')
-    print(tracks['ball'])
+    output_video_frames = tracker.draw_annotations(video_frames, tracks, team_ball_control, api_team_1, api_team_2)
 
     base_name, ext = os.path.splitext(input_video_path)
     output_dir = 'output_videos'
@@ -93,4 +125,4 @@ def main(input_video_path):
     return output_path
 
 if __name__ == '__main__':
-    main('duke_short.mp4')
+    main('duke.mp4', 'Breakaway', '#DFE2DC', 'TNBA', '#000000')

@@ -1,5 +1,7 @@
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
+import math
+import cv2
 
 class TeamAssigner:
     def __init__(self):
@@ -11,15 +13,14 @@ class TeamAssigner:
         # Reshape the image to 2D array
         image_2d = image.reshape(-1,3)
 
-        # Preform K-means with 2 clusters
-        kmeans = KMeans(n_clusters=2, init="k-means++",n_init=1)
+        # Perform K-means with 3 clusters
+        kmeans = KMeans(n_clusters=3, init="k-means++",n_init=10)
         kmeans.fit(image_2d)
 
         return kmeans
 
-    def shrink_bbox(self, bbox, scale=0.2):
+    def shrink_bbox(self, bbox, scale=0.5):
         # bbox is [x_min, y_min, x_max, y_max]
-        print(type(bbox))
         width = bbox[2] - bbox[0]
         height = bbox[3] - bbox[1]
         
@@ -40,16 +41,16 @@ class TeamAssigner:
         return [x_min, y_min, x_max, y_max]
 
     def get_player_color(self,frame,bbox):
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         image = frame[int(bbox[1]):int(bbox[3]),int(bbox[0]):int(bbox[2])]
 
         top_half_image = image[0:int(image.shape[0]/2),:]
 
         # let's find center of image 
-        print(f'bbox type: {type(bbox)}')
         bbox_adj = self.shrink_bbox(bbox)
         img_adj = frame[int(bbox_adj[1]):int(bbox_adj[3]),int(bbox_adj[0]):int(bbox_adj[2])]
         top_half_image = img_adj[0:int(img_adj.shape[0]/2),:]
-        if self.show_test_img <= 10:
+        if self.show_test_img <= 0:
             plt.imshow(top_half_image)
             plt.show()
             self.show_test_img += 1
@@ -68,12 +69,22 @@ class TeamAssigner:
         non_player_cluster = max(set(corner_clusters),key=corner_clusters.count)
         player_cluster = 1 - non_player_cluster
 
+        '''
+        USED FOR TESTING
+        if self.show_test_img >= 0 and self.show_test_img <= 15:
+            plt.imshow(top_half_image)
+            plt.show()
+            plt.imshow(clustered_image)
+            plt.show()
+            self.show_test_img += 1
+        '''
+
         player_color = kmeans.cluster_centers_[player_cluster]
         print(f'player_color: {player_color}')
 
         return player_color
 
-
+    # auto assign team colors
     def assign_team_color(self, frame, player_detections):
         player_colors = []
         for _, player_detection in player_detections.items():
@@ -88,7 +99,26 @@ class TeamAssigner:
 
         self.team_colors[1] = kmeans.cluster_centers_[0]
         self.team_colors[2] = kmeans.cluster_centers_[1]
+    
 
+    def hex_to_rgb(self, hex_code):
+        hex_code = hex_code.lstrip('#')  # Remove the '#' if it exists
+        return tuple(int(hex_code[i:i+2], 16) for i in (0, 2, 4))
+
+    # assign using entered colors
+    def assign_team_colors(self, team_1_color, team_2_color):
+        self.team_colors[1] = self.hex_to_rgb(team_1_color)
+        self.team_colors[2] = self.hex_to_rgb(team_2_color)
+
+    # Calculate distance btw 2 colors
+    def find_color_distance(self, color1, color2):
+        return math.sqrt(sum((c1 - c2) ** 2 for c1, c2 in zip(color1, color2)))
+
+    # return team w/ closest color to player's jersey
+    def find_closest_team_color(self, target, color1, color2):
+        dist1 = self.find_color_distance(target, color1)
+        dist2 = self.find_color_distance(target, color2)
+        return 1 if dist1 < dist2 else 2
 
     def get_player_team(self,frame,player_bbox,player_id):
         if player_id in self.player_team_dict:
@@ -96,12 +126,11 @@ class TeamAssigner:
 
         player_color = self.get_player_color(frame,player_bbox)
 
-        team_id = self.kmeans.predict(player_color.reshape(1,-1))[0]
-        team_id+=1
+        # OLD
+        #team_id = self.kmeans.predict(player_color.reshape(1,-1))[0]
+        #team_id+=1
 
-        # what is this???
-        if player_id ==91:
-            team_id=1
+        team_id = self.find_closest_team_color(player_color, self.team_colors[1], self.team_colors[2])
 
         self.player_team_dict[player_id] = team_id
 

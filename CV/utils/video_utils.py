@@ -4,7 +4,6 @@ import numpy as np
 
 # reads video specified by video_path
 def read_video(video_path):
-    print(4)
     cap = cv2.VideoCapture(video_path)
 
     # get frame rate of input video
@@ -12,7 +11,6 @@ def read_video(video_path):
 
     # store list of frames contained in video
     frames = []
-    print(5)
     a = 0
     while True:
         a += 1

@@ -16,7 +16,8 @@ def main():
     for team in ncaa_teams:
         if team['data']['name'] == 'Georgia':
             API.format_print(team)
-            break
+        elif team['data']['name'] == 'Auburn':
+            API.format_print(team)
     
     
     auburn_roster = API.get_team_roster(API.auburn_id)

@@ -29,21 +29,53 @@ class Tracker:
         ball_positions = [x.get(1,{}).get('bbox',[]) for x in ball_positions]
         df_ball_positions = pd.DataFrame(ball_positions,columns=['x1','y1','x2','y2'])
 
-        # Interpolate missing values
-        df_ball_positions = df_ball_positions.interpolate()
-        df_ball_positions = df_ball_positions.bfill()
+        # Remove Outliers
+        avg_movement = df_ball_positions.diff().abs().mean()
 
-        ball_positions = [{1: {"bbox":x}} for x in df_ball_positions.to_numpy().tolist()]
+        last_valid_frame = None
+        consecutive_nans = 0
+        for i in range(len(df_ball_positions)):
+            if df_ball_positions.iloc[i].isna().all():  # If the current frame is NaN
+                consecutive_nans += 1
+            else:  # If the current frame is not NaN
+                if last_valid_frame is not None and consecutive_nans > 0:
+                    movement = np.abs(np.array(df_ball_positions.iloc[i].values) - np.array(last_valid_frame))
+
+                    # Scale the movement by the number of NaN frames in between
+                    scaled_movement = movement / (consecutive_nans * 0.25)
+
+                    # If the scaled movement is larger than the allowed threshold, set the frame to NaN
+                    for j in range(len(movement)):
+                        if scaled_movement[j] > (avg_movement[j] * 1.0):  # orig 1.0, changed to increase tolerance
+                            df_ball_positions.iloc[i] = np.nan 
+                            print(f"OUTLIER FOUND       {j}     {scaled_movement[j]}     {(avg_movement[j])}")
+
+                else : # Reset the NaN counter and update the last valid frame
+                    last_valid_frame = df_ball_positions.iloc[i].values
+                    consecutive_nans = 0
+
+        # Process frames in batches
+        batch_size = 10
+        for i in range(0, len(df_ball_positions), batch_size):
+            batch = df_ball_positions.iloc[i:i + batch_size]
+            
+            if batch.isna().all().all():
+                continue
+
+            df_ball_positions.iloc[i:i + batch_size] = batch.interpolate()
+            df_ball_positions.iloc[i:i + batch_size] = batch.bfill()
+
+        ball_positions = [
+            {1: {"bbox": x}} if not pd.isna(x).all() else {}
+            for x in df_ball_positions.to_numpy().tolist()
+        ]
 
         return ball_positions
 
     def detect_frames(self, frames):
         batch_size=20 
         detections = [] 
-        print(frames[0])
-        print(type(frames[0]))
         a = 1
-        print('yoyo')
         for frame in frames[:-1]:
             print(a)
             a += 1
@@ -98,6 +130,10 @@ class Tracker:
 
         return tracks
     
+    # Converts an rgb tuple to a bgr tuple
+    def convert_rgb_to_bgr(self, rgb_color):
+        return (rgb_color[2], rgb_color[1], rgb_color[0])
+    
     def draw_ellipse(self,frame,bbox,color,track_id=None):
         y2 = int(bbox[3])
         x_center, _ = get_center_of_bbox(bbox)
@@ -110,7 +146,7 @@ class Tracker:
             angle=0.0,
             startAngle=-45,
             endAngle=235,
-            color = color,
+            color = self.convert_rgb_to_bgr(color),
             thickness=2,
             lineType=cv2.LINE_4
         )
@@ -139,15 +175,13 @@ class Tracker:
                 (int(x1_text),int(y1_rect+15)),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.6,
-                (0,0,0),
+                (128,128,128),
                 2
             )
 
         return frame
 
     def draw_traingle(self,frame,bbox,color):
-        print('Drawing triangle for ball')
-        print('___BBOX___', bbox)
         y= int(bbox[1])
         x,_ = get_center_of_bbox(bbox)
 
@@ -162,19 +196,17 @@ class Tracker:
         return frame
     
     def draw_ball_box(self, frame, bbox, color, thickness):
-        print('Drawing ball\'s bounding box')
         x1 = int(bbox[0])
         y1 = int(bbox[1])
         x2 = int(bbox[2])
         y2 = int(bbox[3])
-        print(f'x1: {x1}, y1: {y1}')
 
         frame = cv2.rectangle(frame, (x1, y1), (x2, y2), color, thickness)
 
         return frame
         
 
-    def draw_team_ball_control(self,frame,frame_num,team_ball_control):
+    def draw_team_ball_control(self, tracks, frame,frame_num,team_ball_control):
         # Draw a semi-transparent rectaggle 
         overlay = frame.copy()
         cv2.rectangle(overlay, (1350, 850), (1900,970), (255,255,255), -1 )
@@ -196,17 +228,58 @@ class Tracker:
         #cv2.putText(frame, f"Team 1 Ball Control: {team_1*100:.2f}%",(1400,900), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 3)
         #cv2.putText(frame, f"Team 2 Ball Control: {team_2*100:.2f}%",(1400,950), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 3)
 
-        cv2.putText(frame, f"Ball Control: {team_ball_control[frame_num]}",(1400,900), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 3)
+        cv2.putText(frame, 
+                    f"Ball Control: {tracks['team_1_name'] if team_ball_control[frame_num] == 1 else tracks['team_2_name']}",
+                    (1400,900), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 
+                    1, 
+                    (0,0,0), 
+                    3)
 
         return frame
 
-    def draw_annotations(self, video_frames, tracks, team_ball_control):
+    def draw_team_info(self, frame, team, position):
+        # Determine the rectangle and text placement based on the position
+        if position == 1:  # Top-left corner (team 1)
+            rect_start = (20, 20)
+            rect_end = (570, 140)
+            text_start = (30, 50)
+        else:  # Top-right corner (team 2)
+            frame_width = frame.shape[1]
+            rect_start = (frame_width - 570, 20)
+            rect_end = (frame_width - 20, 140)
+            text_start = (frame_width - 560, 50)
+
+        # Draw a semi-transparent rectangle
+        overlay = frame.copy()
+        cv2.rectangle(overlay, rect_start, rect_end, (255, 255, 255), -1)
+        alpha = 0.4
+        cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
+
+        # Add the team information text
+        text = f"{team['data']['fullName']}\n{team['data']['division']['name']} - {team['data']['league']['name']}"
+        
+        #players = []
+        #for i in range(5): # Currently just 5 random players, eventually you'll be bale to choose who's on the court?
+        #    players.append(team['data']['roster'][i])
+        
+        #for player in players:
+        #    text = text + f"\n{player['data']['number']} - {player['data']['name']}"
+            
+        y0, dy = text_start[1], 30  # Starting y position and line spacing
+        for i, line in enumerate(text.split('\n')):
+            y = y0 + i * dy
+            cv2.putText(frame, line, (text_start[0], y), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2)
+
+        return frame
+
+
+    def draw_annotations(self, video_frames, tracks, team_ball_control, team_1, team_2):
         output_video_frames= []
         for frame_num, frame in enumerate(video_frames):
             frame = frame.copy()
-            #print(frame_num)
 
-            try:
+            if True:
                 player_dict = tracks["players"][frame_num]
                 ball_dict = tracks["ball"][frame_num]
 
@@ -218,7 +291,7 @@ class Tracker:
                     if player.get('has_ball',False):
                         frame = self.draw_traingle(frame, player["bbox"],(0,0,255))
                         # PROBLEM w/ box being drawna round correct player
-                        #frame = self.draw_ball_box(frame, player["bbox"], (0,255,0), 2)
+                        frame = self.draw_ball_box(frame, player["bbox"], (0,255,0), 2)
                 
                 # Draw ball 
                 for track_id, ball in ball_dict.items():
@@ -227,9 +300,13 @@ class Tracker:
 
 
                 # Draw Team Ball Control
-                frame = self.draw_team_ball_control(frame, frame_num, team_ball_control)
+                frame = self.draw_team_ball_control(tracks, frame, frame_num, team_ball_control)
+
+                # Draw API Information
+                frame = self.draw_team_info(frame, team_1, 1)
+                frame = self.draw_team_info(frame, team_2, 2)
 
                 output_video_frames.append(frame)
-            except: continue
+            #except: continue
 
         return output_video_frames
