@@ -7,6 +7,7 @@ from team_assigner import TeamAssigner
 from player_ball_assigner import PlayerBallAssigner
 from api import SynergySportsAPI
 import os
+import collections
     
 def main(input_video_path, team_1_name, team_1_color, team_2_name, team_2_color):
     print(team_1_name)
@@ -21,7 +22,7 @@ def main(input_video_path, team_1_name, team_1_color, team_2_name, team_2_color)
     tracker = Tracker('models/models-med/best.pt')
 
     tracks = tracker.get_object_tracks(video_frames,
-                                       read_from_stub=True,
+                                       read_from_stub=False,
                                        stub_path='stubs/track_stubs.pkl')
     # Get object positions 
     tracker.add_position_to_tracks(tracks)
@@ -51,6 +52,10 @@ def main(input_video_path, team_1_name, team_1_color, team_2_name, team_2_color)
     # Assign Ball Acquisition
     player_assigner = PlayerBallAssigner()
     team_ball_control= []
+
+    #Rolling history of team assignment for the last 10 frames
+    rolling_history = collections.deque(maxlen=10)
+
     for frame_num, player_track in enumerate(tracks['players']):
         try:
             ball_bbox = tracks['ball'][frame_num][1]['bbox']
@@ -58,16 +63,21 @@ def main(input_video_path, team_1_name, team_1_color, team_2_name, team_2_color)
             assigned_player = player_assigner.assign_ball_to_player(player_track, ball_bbox)
 
             if assigned_player != -1:
+                current_team = tracks['players'][frame_num][assigned_player]['team']
                 tracks['players'][frame_num][assigned_player]['has_ball'] = True
-                team_ball_control.append(tracks['players'][frame_num][assigned_player]['team'])
             else:
-                if len(team_ball_control) < 1:
-                    team_ball_control.append(3)
-                else:
-                    team_ball_control.append(team_ball_control[-1])
-                #team_ball_control.append(team_ball_control[-1])
+                current_team = team_ball_control[-1] if team_ball_control else 3
+
+            #Update rolling history with current frame's assignment
+            rolling_history.append(current_team)
+
+            #Find mode team assignment from last 10 frames
+            mode_team = collections.Counter(rolling_history).most_common(1)[0][0]
+            team_ball_control.append(mode_team)
+
         except: 
             print('Excepted...')
+            rolling_history.append(1)
             team_ball_control.append(1)
             continue
     team_ball_control = np.array(team_ball_control)
