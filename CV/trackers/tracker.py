@@ -258,6 +258,14 @@ class Tracker:
 
         # Add the team information text
         text = f"{team['data']['fullName']}\n{team['data']['division']['name']} - {team['data']['league']['name']}"
+        
+        #players = []
+        #for i in range(5): # Currently just 5 random players, eventually you'll be bale to choose who's on the court?
+        #    players.append(team['data']['roster'][i])
+        
+        #for player in players:
+        #    text = text + f"\n{player['data']['number']} - {player['data']['name']}"
+            
         y0, dy = text_start[1], 30  # Starting y position and line spacing
         for i, line in enumerate(text.split('\n')):
             y = y0 + i * dy
@@ -271,7 +279,7 @@ class Tracker:
         for frame_num, frame in enumerate(video_frames):
             frame = frame.copy()
 
-            try:
+            if True:
                 player_dict = tracks["players"][frame_num]
                 ball_dict = tracks["ball"][frame_num]
 
@@ -299,6 +307,6 @@ class Tracker:
                 frame = self.draw_team_info(frame, team_2, 2)
 
                 output_video_frames.append(frame)
-            except: continue
+            #except: continue
 
         return output_video_frames

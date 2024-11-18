@@ -22,7 +22,7 @@ def main(input_video_path, team_1_name, team_1_color, team_2_name, team_2_color)
     tracker = Tracker('models/models-med/best.pt')
 
     tracks = tracker.get_object_tracks(video_frames,
-                                       read_from_stub=False,
+                                       read_from_stub=True,
                                        stub_path='stubs/track_stubs.pkl')
     # Get object positions 
     tracker.add_position_to_tracks(tracks)
@@ -56,6 +56,7 @@ def main(input_video_path, team_1_name, team_1_color, team_2_name, team_2_color)
     #Rolling history of team assignment for the last 10 frames
     rolling_history = collections.deque(maxlen=10)
 
+    possession_tracker= []
     for frame_num, player_track in enumerate(tracks['players']):
         try:
             ball_bbox = tracks['ball'][frame_num][1]['bbox']
@@ -63,7 +64,6 @@ def main(input_video_path, team_1_name, team_1_color, team_2_name, team_2_color)
             possession_tracker.append(player_assigner.assign_ball_to_player(player_track, ball_bbox))
         except: 
             possession_tracker.append(-1)
-    
 
     possession_tracker = player_assigner.correct_possession_history(possession_tracker, 3)
 
@@ -101,8 +101,10 @@ def main(input_video_path, team_1_name, team_1_color, team_2_name, team_2_color)
     for team in ncaa_teams:
         if team['data']['name'] == api_team_1_name:
             api_team_1 = team
+            api_team_1['data']['roster'] = API.get_team_roster(api_team_1["data"]["id"])
         elif team['data']['name'] == api_team_2_name:
             api_team_2 = team
+            api_team_2['data']['roster'] = API.get_team_roster(api_team_2["data"]["id"])
 
 
     # Draw output 
