@@ -1,3 +1,5 @@
+# USED FOR TESTING
+
 from ultralytics import YOLO
 
 def main():

@@ -17,9 +17,7 @@ class PlayerBallAssigner():
 
         miniumum_distance = 99999
         assigned_player=-1
-        print('Player ids to assign ball to: ')
         for player_id, player in players.items():
-            print(player_id)
             player_bbox = player['bbox']
 
             distance = measure_distance(get_center_of_bbox(player_bbox),ball_position)
@@ -33,8 +31,6 @@ class PlayerBallAssigner():
 
             if player_id == self.previous_possessor:
                 weighted_distance = weighted_distance * 0.70
-
-            print(f'distance to ball: {distance}    player height: {player_height}  ball size: {ball_size}  deviation: {deviation}  scaled: {weighted_distance}')
 
             if distance < self.max_player_ball_distance:
                 if weighted_distance < miniumum_distance:

@@ -142,7 +142,7 @@ elif upload_type == "Video":
         # Annotate video
         if st.button("Annotate Video"):
             with st.spinner("Annotating video..."):
-                output_path = main(uploaded_video.name)
+                output_path = main(uploaded_video.name, selected_team_1, team_1_color, selected_team_2, team_2_color)
             
             # Display
             st.video(output_path)
