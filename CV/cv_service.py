@@ -5,6 +5,7 @@ from trackers import Tracker
 import numpy as np
 from team_assigner import TeamAssigner
 from player_ball_assigner import PlayerBallAssigner
+from api import SynergySportsAPI
 import os
 #from camera_movement_estimator import CameraMovementEstimator
 #from view_transformer import ViewTransformer
@@ -70,9 +71,21 @@ def main(input_video_path):
     team_ball_control = np.array(team_ball_control)
 
 
+    # Query Information
+    api_team_1_name = 'Georgia'
+    api_team_2_name = 'Auburn'
+    API = SynergySportsAPI.SynergySportsAPI()
+    
+    ncaa_teams = API.get_teams(API.ncaa_id)
+    for team in ncaa_teams:
+        if team['data']['name'] == api_team_1_name:
+            api_team_1 = team
+        elif team['data']['name'] == api_team_2_name:
+            api_team_2 = team
+
+
     # Draw output 
-    ## Draw object Tracks
-    output_video_frames = tracker.draw_annotations(video_frames, tracks, team_ball_control)
+    output_video_frames = tracker.draw_annotations(video_frames, tracks, team_ball_control, api_team_1, api_team_2)
 
     #print('============ __tracks =============')
     #print(tracks)

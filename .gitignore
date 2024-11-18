@@ -41,3 +41,4 @@ trace.txt
 
 # Don't want to store api credentials in public github
 /Data/api/config.json
+/CV/api/config.json

@@ -235,7 +235,35 @@ class Tracker:
 
         return frame
 
-    def draw_annotations(self, video_frames, tracks, team_ball_control):
+    def draw_team_info(self, frame, team, position):
+        # Determine the rectangle and text placement based on the position
+        if position == 1:  # Top-left corner (team 1)
+            rect_start = (20, 20)
+            rect_end = (570, 140)
+            text_start = (30, 50)
+        else:  # Top-right corner (team 2)
+            frame_width = frame.shape[1]
+            rect_start = (frame_width - 570, 20)
+            rect_end = (frame_width - 20, 140)
+            text_start = (frame_width - 560, 50)
+
+        # Draw a semi-transparent rectangle
+        overlay = frame.copy()
+        cv2.rectangle(overlay, rect_start, rect_end, (255, 255, 255), -1)
+        alpha = 0.4
+        cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
+
+        # Add the team information text
+        text = f"{team['data']['fullName']}\n{team['data']['division']['name']} - {team['data']['league']['name']}"
+        y0, dy = text_start[1], 30  # Starting y position and line spacing
+        for i, line in enumerate(text.split('\n')):
+            y = y0 + i * dy
+            cv2.putText(frame, line, (text_start[0], y), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2)
+
+        return frame
+
+
+    def draw_annotations(self, video_frames, tracks, team_ball_control, team_1, team_2):
         output_video_frames= []
         for frame_num, frame in enumerate(video_frames):
             frame = frame.copy()
@@ -263,6 +291,10 @@ class Tracker:
 
                 # Draw Team Ball Control
                 frame = self.draw_team_ball_control(frame, frame_num, team_ball_control)
+
+                # Draw API Information
+                frame = self.draw_team_info(frame, team_1, 1)
+                frame = self.draw_team_info(frame, team_2, 2)
 
                 output_video_frames.append(frame)
             except: continue

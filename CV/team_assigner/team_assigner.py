@@ -49,10 +49,10 @@ class TeamAssigner:
         bbox_adj = self.shrink_bbox(bbox)
         img_adj = frame[int(bbox_adj[1]):int(bbox_adj[3]),int(bbox_adj[0]):int(bbox_adj[2])]
         top_half_image = img_adj[0:int(img_adj.shape[0]/2),:]
-        if self.show_test_img <= 10:
-            plt.imshow(top_half_image)
-            plt.show()
-            self.show_test_img += 1
+        #if self.show_test_img <= 10:
+        #    plt.imshow(top_half_image)
+        #    plt.show()
+        #    self.show_test_img += 1
 
         # Get Clustering model
         kmeans = self.get_clustering_model(top_half_image)

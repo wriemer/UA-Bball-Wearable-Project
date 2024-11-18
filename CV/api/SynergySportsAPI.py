@@ -10,7 +10,7 @@ class SynergySportsAPI:
     """
     Init and config methods
     """
-    def __init__(self, config_path='./Data/api/config.json'):
+    def __init__(self, config_path='./api/config.json'):
         self.auth_url = "https://auth.synergysportstech.com/connect/token"
         self.base_url = "https://basketball.synergysportstech.com/external/api"
         self.config_path = config_path
