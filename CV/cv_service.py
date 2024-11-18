@@ -1,4 +1,4 @@
-# This file will contain main logic for cv operations
+# This file contains main logic for cv operations
 
 from utils import read_video, save_video
 from trackers import Tracker
@@ -6,11 +6,13 @@ import numpy as np
 from team_assigner import TeamAssigner
 from player_ball_assigner import PlayerBallAssigner
 import os
-#from camera_movement_estimator import CameraMovementEstimator
-#from view_transformer import ViewTransformer
-#from speed_and_distance_estimator import SpeedAndDistance_Estimator
     
-def main(input_video_path):
+def main(input_video_path, team_1_name, team_1_color, team_2_name, team_2_color):
+    print(team_1_name)
+    print(team_1_color)
+    print(team_2_name)
+    print(team_2_color)
+
      # Read Video
     video_frames, fps = read_video('input_videos/' + input_video_path)
 
@@ -25,36 +27,36 @@ def main(input_video_path):
 
     # Interpolate missing ball positions
     tracks["ball"] = tracker.interpolate_ball_positions(tracks["ball"])
+    tracks["team_1_name"] = team_1_name
+    tracks["team_2_name"] = team_2_name
 
     # Assign Player Teams
     team_assigner = TeamAssigner()
-    team_assigner.assign_team_color(video_frames[0], 
-                                    tracks['players'][0])
+    #team_assigner.assign_team_color(video_frames[0], tracks['players'][0])
+    team_assigner.assign_team_colors(team_1_color, team_2_color)
     
     for frame_num, player_track in enumerate(tracks['players']):
-        #print(f'TEAMS for frame {frame_num}')
         for player_id, track in player_track.items():
-            team = team_assigner.get_player_team(video_frames[frame_num],   
-                                                 track['bbox'],
-                                                 player_id)
-            #print(f'Player ID: {player_id} \t Team: {team}')
-            tracks['players'][frame_num][player_id]['team'] = team 
-            tracks['players'][frame_num][player_id]['team_color'] = team_assigner.team_colors[team]
+            try:
+                team = team_assigner.get_player_team(video_frames[frame_num],   
+                                                    track['bbox'],
+                                                    player_id)
+                tracks['players'][frame_num][player_id]['team'] = team 
+                tracks['players'][frame_num][player_id]['team_color'] = team_assigner.team_colors[team]
+            except:
+                print('ERROR: ', frame_num)
 
     
     # Assign Ball Acquisition
     player_assigner = PlayerBallAssigner()
     team_ball_control= []
     for frame_num, player_track in enumerate(tracks['players']):
-        print('\nframe_num: ', frame_num)
         try:
             ball_bbox = tracks['ball'][frame_num][1]['bbox']
 
             assigned_player = player_assigner.assign_ball_to_player(player_track, ball_bbox)
 
             if assigned_player != -1:
-                print('Successfully assigned ball to player + team...')
-                print(tracks['players'][frame_num][assigned_player]['team'])
                 tracks['players'][frame_num][assigned_player]['has_ball'] = True
                 team_ball_control.append(tracks['players'][frame_num][assigned_player]['team'])
             else:
@@ -74,12 +76,6 @@ def main(input_video_path):
     ## Draw object Tracks
     output_video_frames = tracker.draw_annotations(video_frames, tracks, team_ball_control)
 
-    #print('============ __tracks =============')
-    #print(tracks)
-
-    #print('================= _ball_tracks ============')
-    #print(tracks['ball'])
-
     base_name, ext = os.path.splitext(input_video_path)
     output_dir = 'output_videos'
     output_path = os.path.join(output_dir, f"{base_name}{ext}")
@@ -95,4 +91,4 @@ def main(input_video_path):
     return output_path
 
 if __name__ == '__main__':
-    main('duke.mp4')
+    main('bball_4.mp4', 'Breakaway', '#DFE2DC', 'TNBA', '#000000')

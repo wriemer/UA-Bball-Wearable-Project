@@ -46,7 +46,7 @@ class Tracker:
 
                     # If the scaled movement is larger than the allowed threshold, set the frame to NaN
                     for j in range(len(movement)):
-                        if scaled_movement[j] > (avg_movement[j] * 1.0):
+                        if scaled_movement[j] > (avg_movement[j] * 1.0):  # orig 1.0, changed to increase tolerance
                             df_ball_positions.iloc[i] = np.nan 
                             print(f"OUTLIER FOUND       {j}     {scaled_movement[j]}     {(avg_movement[j])}")
 
@@ -75,10 +75,7 @@ class Tracker:
     def detect_frames(self, frames):
         batch_size=20 
         detections = [] 
-        print(frames[0])
-        print(type(frames[0]))
         a = 1
-        print('yoyo')
         for frame in frames[:-1]:
             print(a)
             a += 1
@@ -133,6 +130,10 @@ class Tracker:
 
         return tracks
     
+    # Converts an rgb tuple to a bgr tuple
+    def convert_rgb_to_bgr(self, rgb_color):
+        return (rgb_color[2], rgb_color[1], rgb_color[0])
+    
     def draw_ellipse(self,frame,bbox,color,track_id=None):
         y2 = int(bbox[3])
         x_center, _ = get_center_of_bbox(bbox)
@@ -145,7 +146,7 @@ class Tracker:
             angle=0.0,
             startAngle=-45,
             endAngle=235,
-            color = color,
+            color = self.convert_rgb_to_bgr(color),
             thickness=2,
             lineType=cv2.LINE_4
         )
@@ -181,8 +182,6 @@ class Tracker:
         return frame
 
     def draw_traingle(self,frame,bbox,color):
-        #print('Drawing triangle for ball')
-        #print('___BBOX___', bbox)
         y= int(bbox[1])
         x,_ = get_center_of_bbox(bbox)
 
@@ -197,19 +196,17 @@ class Tracker:
         return frame
     
     def draw_ball_box(self, frame, bbox, color, thickness):
-        #print('Drawing ball\'s bounding box')
         x1 = int(bbox[0])
         y1 = int(bbox[1])
         x2 = int(bbox[2])
         y2 = int(bbox[3])
-        #print(f'x1: {x1}, y1: {y1}')
 
         frame = cv2.rectangle(frame, (x1, y1), (x2, y2), color, thickness)
 
         return frame
         
 
-    def draw_team_ball_control(self,frame,frame_num,team_ball_control):
+    def draw_team_ball_control(self, tracks, frame,frame_num,team_ball_control):
         # Draw a semi-transparent rectaggle 
         overlay = frame.copy()
         cv2.rectangle(overlay, (1350, 850), (1900,970), (255,255,255), -1 )
@@ -231,7 +228,13 @@ class Tracker:
         #cv2.putText(frame, f"Team 1 Ball Control: {team_1*100:.2f}%",(1400,900), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 3)
         #cv2.putText(frame, f"Team 2 Ball Control: {team_2*100:.2f}%",(1400,950), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 3)
 
-        cv2.putText(frame, f"Ball Control: {team_ball_control[frame_num]}",(1400,900), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 3)
+        cv2.putText(frame, 
+                    f"Ball Control: {tracks['team_1_name'] if team_ball_control[frame_num] == 1 else tracks['team_2_name']}",
+                    (1400,900), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 
+                    1, 
+                    (0,0,0), 
+                    3)
 
         return frame
 
@@ -239,7 +242,6 @@ class Tracker:
         output_video_frames= []
         for frame_num, frame in enumerate(video_frames):
             frame = frame.copy()
-            #print(frame_num)
 
             try:
                 player_dict = tracks["players"][frame_num]
@@ -262,7 +264,7 @@ class Tracker:
 
 
                 # Draw Team Ball Control
-                frame = self.draw_team_ball_control(frame, frame_num, team_ball_control)
+                frame = self.draw_team_ball_control(tracks, frame, frame_num, team_ball_control)
 
                 output_video_frames.append(frame)
             except: continue
