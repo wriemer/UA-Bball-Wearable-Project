@@ -2,9 +2,14 @@
 layout: default
 ---
 
-[Sprint Log](/UA-Bball-Wearable-Project/sprint)
+[Approach](/UA-Bball-Wearable-Project/sprint)
 
 [Technology](/UA-Bball-Wearable-Project/tech)
 
+# Project Goals
 
-[Jekyll Theme](https://github.com/pages-themes/minimal)
+# Team Members
+| Name         | Email         | CWID                      |
+| :----------- | :--------------: | -------------------------: |
+| Dane Tsao | dltsao@crimson.ua.edu |   |
+| else    | else   |  |
