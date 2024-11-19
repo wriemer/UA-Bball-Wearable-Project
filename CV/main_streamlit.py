@@ -7,7 +7,7 @@ import tempfile
 import random
 import os
 from cv_service import main
-from Data.api.SynergySportsAPI import SynergySportsAPI
+from api.SynergySportsAPI import SynergySportsAPI
 import shutil
 
 
@@ -30,7 +30,7 @@ print("Current Working Directory:", os.getcwd())
 # Title
 st.title("Annotate Uploaded Video")
 
-api = SynergySportsAPI(config_path='../Data/api/config.json')
+api = SynergySportsAPI(config_path='./api/config.json')
 
 # Team Selection and Color Assignment
 st.sidebar.header("Team Setup")
