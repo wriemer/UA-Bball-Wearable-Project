@@ -242,12 +242,12 @@ class Tracker:
         # Determine the rectangle and text placement based on the position
         if position == 1:  # Top-left corner (team 1)
             rect_start = (20, 20)
-            rect_end = (570, 140)
+            rect_end = (570, 260)
             text_start = (30, 50)
         else:  # Top-right corner (team 2)
             frame_width = frame.shape[1]
             rect_start = (frame_width - 570, 20)
-            rect_end = (frame_width - 20, 140)
+            rect_end = (frame_width - 20, 260)
             text_start = (frame_width - 560, 50)
 
         # Draw a semi-transparent rectangle
@@ -272,9 +272,50 @@ class Tracker:
             cv2.putText(frame, line, (text_start[0], y), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2)
 
         return frame
+    
+    def draw_event_info(self, frame, events):
+        overlay = frame.copy()
+        frame_height, frame_width = frame.shape[:2] 
+        
+        # Get the event text
+        event = events['data'][0]
+        text = f"{event['data']['description']}"
+        
+        # Calculate text size
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_scale = 0.8
+        thickness = 2
+        text_size, _ = cv2.getTextSize(text, font, font_scale, thickness)
+        text_width, text_height = text_size
+        
+        # Define rectangle dimensions based on text size
+        padding = 20
+        rect_width = text_width + 2 * padding
+        rect_height = text_height + 2 * padding
+        rect_x1 = (frame_width - rect_width) // 2
+        rect_y1 = 20
+        rect_x2 = rect_x1 + rect_width
+        rect_y2 = rect_y1 + rect_height
+        
+        # Draw semi-transparent rectangle
+        cv2.rectangle(overlay, (rect_x1, rect_y1), (rect_x2, rect_y2), (255, 255, 255), -1)
+        alpha = 0.4
+        cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
+        
+        # Draw the text
+        text_x = rect_x1 + padding
+        text_y = rect_y1 + padding + text_height
+        cv2.putText(frame,
+                    text,
+                    (text_x, text_y),
+                    font,
+                    font_scale,
+                    (0, 0, 0),  # Text color
+                    thickness)
+        return frame
 
 
-    def draw_annotations(self, video_frames, tracks, team_ball_control, team_1, team_2):
+    def draw_annotations(self, video_frames, tracks, team_ball_control, team_1, team_2, events):
         output_video_frames= []
         for frame_num, frame in enumerate(video_frames):
             frame = frame.copy()
@@ -305,6 +346,7 @@ class Tracker:
                 # Draw API Information
                 frame = self.draw_team_info(frame, team_1, 1)
                 frame = self.draw_team_info(frame, team_2, 2)
+                frame = self.draw_event_info(frame, events)
 
                 output_video_frames.append(frame)
             except: continue
