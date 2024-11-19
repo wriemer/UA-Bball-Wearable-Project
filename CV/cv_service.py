@@ -92,23 +92,20 @@ def main(input_video_path, team_1_name, team_1_color, team_2_name, team_2_color)
     team_ball_control = np.array(team_ball_control)
 
 
-    # Query Information
-    api_team_1_name = 'Georgia'
-    api_team_2_name = 'Auburn'
     API = SynergySportsAPI.SynergySportsAPI()
-    
     ncaa_teams = API.get_teams(API.ncaa_id)
     for team in ncaa_teams:
-        if team['data']['name'] == api_team_1_name:
+        if team['data']['name'] == team_1_name:
             api_team_1 = team
             api_team_1['data']['roster'] = API.get_team_roster(api_team_1["data"]["id"])
-        elif team['data']['name'] == api_team_2_name:
+        elif team['data']['name'] == team_2_name:
             api_team_2 = team
             api_team_2['data']['roster'] = API.get_team_roster(api_team_2["data"]["id"])
-
+    
+    events = API.get_game_events(API.game_id_1)
 
     # Draw output 
-    output_video_frames = tracker.draw_annotations(video_frames, tracks, team_ball_control, api_team_1, api_team_2)
+    output_video_frames = tracker.draw_annotations(video_frames, tracks, team_ball_control, api_team_1, api_team_2, events)
 
     base_name, ext = os.path.splitext(input_video_path)
     output_dir = 'output_videos'
@@ -125,4 +122,4 @@ def main(input_video_path, team_1_name, team_1_color, team_2_name, team_2_color)
     return output_path
 
 if __name__ == '__main__':
-    main('duke.mp4', 'Breakaway', '#DFE2DC', 'TNBA', '#000000')
+    main('duke.mp4', 'Georgia', '#DFE2DC', 'Auburn', '#000000')
