@@ -26,11 +26,17 @@ class Tracker:
                     tracks[object][frame_num][track_id]['position'] = position
 
     def interpolate_ball_positions(self,ball_positions):
+        MISSING_FRAME_DISTANCE = 1.0 # The amount of distance searched for each absent frame prior to a detection | a lower value will make it search a smaller area after losing the ball
+        TOLERANCE = 1.0 # How far from average a transition can be without being considered an outlier. | Higher values make it more accepting
+
         ball_positions = [x.get(1,{}).get('bbox',[]) for x in ball_positions]
         df_ball_positions = pd.DataFrame(ball_positions,columns=['x1','y1','x2','y2'])
 
         # Remove Outliers
         avg_movement = df_ball_positions.diff().abs().mean()
+
+        # To account for the detection after the ball is lost being an outlier, compare the new location with 
+        # the last succsussful detection then scale this value based on the number of absent frames
 
         last_valid_frame = None
         consecutive_nans = 0
@@ -42,11 +48,11 @@ class Tracker:
                     movement = np.abs(np.array(df_ball_positions.iloc[i].values) - np.array(last_valid_frame))
 
                     # Scale the movement by the number of NaN frames in between
-                    scaled_movement = movement / (consecutive_nans * 0.25)
+                    scaled_movement = movement / (consecutive_nans * MISSING_FRAME_DISTANCE)
 
                     # If the scaled movement is larger than the allowed threshold, set the frame to NaN
                     for j in range(len(movement)):
-                        if scaled_movement[j] > (avg_movement[j] * 1.0):  # orig 1.0, changed to increase tolerance
+                        if scaled_movement[j] > (avg_movement[j] * TOLERANCE):  # orig 1.0, changed to increase tolerance
                             df_ball_positions.iloc[i] = np.nan 
                             print(f"OUTLIER FOUND       {j}     {scaled_movement[j]}     {(avg_movement[j])}")
 
