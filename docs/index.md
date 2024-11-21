@@ -10,6 +10,10 @@ layout: default
 
 Goal
 
+# Project Video (Presentation + Demo)
+
+[https://youtu.be/OxT2fUXyXGc]
+
 # Team Members
 
 - Aidan Kaczor - ajkaczor@crimson.ua.edu
