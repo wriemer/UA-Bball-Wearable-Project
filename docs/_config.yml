@@ -1,0 +1,9 @@
+title: UA Bball Wearable Project
+logo: /images/bball.png
+description: CS495 Capstone Project
+show_downloads: false
+google_analytics:
+theme: jekyll-theme-minimal
+
+layout: page
+permalink: /sprint.md
