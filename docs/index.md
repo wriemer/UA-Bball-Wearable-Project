@@ -8,8 +8,12 @@ layout: default
 
 # Project Goals
 
+Goal
+
 # Team Members
-| Name         | Email         | CWID                      |
-| :----------- | :--------------: | -------------------------: |
-| Dane Tsao | dltsao@crimson.ua.edu |   |
-| else    | else   |  |
+
+- Aidan Kaczor - ajkaczor@crimson.ua.edu
+- Dane Tsao - dltsao@crimson.ua.edu
+- Joseph Storie - jrstorie@crimson.ua.edu
+- Logan Hay - ljhay@crimson.ua.edu
+- Will Riemer - wjriemer@crimson.ua.edu
