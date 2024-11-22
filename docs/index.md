@@ -6,28 +6,28 @@
   * **Create user-friendly software to automate the analysis of basketball film**
   * **Automate the retrieval of live and historical basketball statistics**
   * **Establish a solid foundation for the original project of wearable smart glasses despite the absence of hardware**
-\
+
 
 # Approach
 
 [Approach](/UA-Bball-Wearable-Project/sprint)
-\
+
 
 # Tech Stack
 
 [Technology](/UA-Bball-Wearable-Project/tech)
-\
+
 
 # Documentation
 
   &nbsp;&nbsp;&nbsp;&nbsp;For documentation on the work which we have completed, please see the github link below. Read the relevant README.md documents for each module, and view the commented code to see our implementation.
 [https://github.com/wriemer/UA-Bball-Wearable-Project]
-\
+
 
 # Project Video (Presentation + Demo)
 
 [https://youtu.be/OxT2fUXyXGc]
-\
+
 
 # Team Members
 
