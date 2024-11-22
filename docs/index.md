@@ -15,7 +15,14 @@
 
 # Tech Stack
 
-[Technology](/UA-Bball-Wearable-Project/tech)
+| Tool       | Purpose     |
+|------------|-------------|
+| [Streamlit](https://streamlit.io/) | Build web app wrapper |
+| [Roboflow](https://roboflow.com/)  | Create image dataset |
+| [YOLOv8](https://ultralytics.com/yolov8) | Train and implement CV model |
+| [OpenCV](https://opencv.org/)      | CV execution |
+| [SQLite](https://sqlite.org/)      | Store roster info and stats |
+
 
 
 # Documentation
@@ -26,7 +33,7 @@
 
 # Project Video (Presentation + Demo)
 
-[https://youtu.be/OxT2fUXyXGc]
+[![](https://img.youtube.com/vi/OxT2fUXyXGc/0.jpg)](https://www.youtube.com/watch?v=OxT2fUXyXGc)
 
 
 # Team Members
