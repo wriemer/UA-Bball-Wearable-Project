@@ -23,7 +23,7 @@ An open-source computer vision library that provides tools for image processing 
 *How we used it:*  
 We used OpenCV to annotate images, preprocess video frames, and integrate the outputs from our YOLO model for player tracking and ball possession detection.
 
-## API
+## Data
 **SQLite**  
 A lightweight, serverless database engine for managing structured data.  
 *How we used it:*  
