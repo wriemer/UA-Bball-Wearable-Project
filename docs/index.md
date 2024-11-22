@@ -10,7 +10,7 @@
 
 # Approach
 
-[Approach](/UA-Bball-Wearable-Project/sprint)
+[Approach](/docs/sprint.md)
 
 
 # Tech Stack
@@ -23,12 +23,13 @@
 | [OpenCV](https://opencv.org/)      | CV execution |
 | [SQLite](https://sqlite.org/)      | Store roster info and stats |
 
+[More on Tech](/docs/tech.md)
 
 
 # Documentation
 
   &nbsp;&nbsp;&nbsp;&nbsp;For documentation on the work which we have completed, please see the github link below. Read the relevant README.md documents for each module, and view the commented code to see our implementation.
-[https://github.com/wriemer/UA-Bball-Wearable-Project]
+[Project GitHub](https://github.com/wriemer/UA-Bball-Wearable-Project)
 
 
 # Project Video (Presentation + Demo)
