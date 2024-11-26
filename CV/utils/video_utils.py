@@ -26,20 +26,6 @@ def read_video(video_path):
 
     return frames, fps
 
-#def save_video(ouput_video_frames, output_video_path, fps):
-#    # set video format
-#    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-
-#    # specify output video settings
-#    # last tuple represents (width, height) for video
-#    out = cv2.VideoWriter(output_video_path, fourcc, fps, (ouput_video_frames[0].shape[1], ouput_video_frames[0].shape[0]))
-
-#    # write frames to output
-#    for frame in ouput_video_frames:
-#        out.write(frame)
-
-#    out.release()
-
 def save_video(output_video_frames, output_video_path, fps):
     output_dir = os.path.dirname(output_video_path)
     if not os.path.exists(output_dir):

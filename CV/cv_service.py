@@ -19,8 +19,11 @@ def main(input_video_path, team_1_name, team_1_color, team_2_name, team_2_color)
     video_frames, fps = read_video('input_videos/' + input_video_path)
 
     # Initialize Tracker
+    #Current model size is medium, models folder also has small and nano sizes for faster runtime
     tracker = Tracker('models/models-med/best.pt')
 
+    #Read from stub allows model to use results from a previous run on a video, if one exists
+    #Turn read from stubs off after updating code, otherwise it will use old results from before updates
     tracks = tracker.get_object_tracks(video_frames,
                                        read_from_stub=True,
                                        stub_path='stubs/track_stubs.pkl')
@@ -34,7 +37,7 @@ def main(input_video_path, team_1_name, team_1_color, team_2_name, team_2_color)
 
     # Assign Player Teams
     team_assigner = TeamAssigner()
-    #team_assigner.assign_team_color(video_frames[0], tracks['players'][0])
+    
     team_assigner.assign_team_colors(team_1_color, team_2_color)
     
     for frame_num, player_track in enumerate(tracks['players']):
@@ -54,6 +57,7 @@ def main(input_video_path, team_1_name, team_1_color, team_2_name, team_2_color)
     team_ball_control= []
 
     #Rolling history of team assignment for the last 10 frames
+    #Basing posession on last 10 frames smooths out results
     rolling_history = collections.deque(maxlen=10)
 
     possession_tracker= []
